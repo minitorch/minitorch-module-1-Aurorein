@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass
 from typing import Any, Iterable, Optional, Sequence, Tuple, Type, Union
 
@@ -8,8 +9,10 @@ import numpy as np
 from .autodiff import Context, Variable, backpropagate, central_difference
 from .scalar_functions import (
     EQ,
+    GT,
     LT,
     Add,
+    Sub,
     Exp,
     Inv,
     Log,
@@ -18,6 +21,8 @@ from .scalar_functions import (
     ReLU,
     ScalarFunction,
     Sigmoid,
+    wrap_tuple,
+    unwrap_tuple
 )
 
 ScalarLike = Union[float, int, "Scalar"]
@@ -93,30 +98,35 @@ class Scalar:
 
     def __add__(self, b: ScalarLike) -> Scalar:
         # TODO: Implement for Task 1.2.
-        raise NotImplementedError("Need to implement for Task 1.2")
+        # raise NotImplementedError("Need to implement for Task 1.2")
+        return Add.apply(self, b)
 
     def __bool__(self) -> bool:
         return bool(self.data)
 
     def __lt__(self, b: ScalarLike) -> Scalar:
         # TODO: Implement for Task 1.2.
-        raise NotImplementedError("Need to implement for Task 1.2")
+        return LT.apply(self, b)
+        # raise NotImplementedError("Need to implement for Task 1.2")
 
     def __gt__(self, b: ScalarLike) -> Scalar:
         # TODO: Implement for Task 1.2.
-        raise NotImplementedError("Need to implement for Task 1.2")
+        # raise NotImplementedError("Need to implement for Task 1.2")
+        return GT.apply(self, b)
 
     def __eq__(self, b: ScalarLike) -> Scalar:  # type: ignore[override]
         # TODO: Implement for Task 1.2.
-        raise NotImplementedError("Need to implement for Task 1.2")
+        # raise NotImplementedError("Need to implement for Task 1.2")
+        return EQ.apply(self, b)
 
     def __sub__(self, b: ScalarLike) -> Scalar:
         # TODO: Implement for Task 1.2.
-        raise NotImplementedError("Need to implement for Task 1.2")
-
+        # raise NotImplementedError("Need to implement for Task 1.2")
+        return Sub.apply(self, b)
     def __neg__(self) -> Scalar:
         # TODO: Implement for Task 1.2.
-        raise NotImplementedError("Need to implement for Task 1.2")
+        return Neg.apply(self)
+        # raise NotImplementedError("Need to implement for Task 1.2")
 
     def __radd__(self, b: ScalarLike) -> Scalar:
         return self + b
@@ -126,20 +136,23 @@ class Scalar:
 
     def log(self) -> Scalar:
         # TODO: Implement for Task 1.2.
-        raise NotImplementedError("Need to implement for Task 1.2")
+        # raise NotImplementedError("Need to implement for Task 1.2")
+        return Log.apply(self)
 
     def exp(self) -> Scalar:
         # TODO: Implement for Task 1.2.
-        raise NotImplementedError("Need to implement for Task 1.2")
+        # raise NotImplementedError("Need to implement for Task 1.2")
+        return Exp.apply(self)
 
     def sigmoid(self) -> Scalar:
         # TODO: Implement for Task 1.2.
-        raise NotImplementedError("Need to implement for Task 1.2")
+        # raise NotImplementedError("Need to implement for Task 1.2")
+        return Sigmoid.apply(self)
 
     def relu(self) -> Scalar:
         # TODO: Implement for Task 1.2.
-        raise NotImplementedError("Need to implement for Task 1.2")
-
+        # raise NotImplementedError("Need to implement for Task 1.2")
+        return ReLU.apply(self)
     # Variable elements for backprop
 
     def accumulate_derivative(self, x: Any) -> None:
@@ -174,7 +187,14 @@ class Scalar:
         assert h.ctx is not None
 
         # TODO: Implement for Task 1.3.
-        raise NotImplementedError("Need to implement for Task 1.3")
+        res = []
+        ders = wrap_tuple(h.last_fn.backward(h.ctx, d_output))
+        for i in range(len(h.inputs)):
+            if not h.inputs[i].is_constant():
+
+                res.append((h.inputs[i], ders[i]))
+        return res
+        # raise NotImplementedError("Need to implement for Task 1.3")
 
     def backward(self, d_output: Optional[float] = None) -> None:
         """
